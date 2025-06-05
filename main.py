@@ -1,4 +1,4 @@
-from 界面 import Ui_MainWindow
+from ui.界面 import Ui_MainWindow
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import Qt, QPropertyAnimation, QRect, QEasingCurve
 from PyQt5.QtGui import QColor

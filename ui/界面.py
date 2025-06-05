@@ -325,4 +325,5 @@ class Ui_MainWindow(object):
         self.listWidget.setSortingEnabled(__sortingEnabled)
         self.label_4.setText(_translate("MainWindow", "组号"))
         self.label_6.setText(_translate("MainWindow", "输入框"))
+
 import resource_rc
