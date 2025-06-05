@@ -3,7 +3,6 @@ from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import Qt, QPropertyAnimation, QRect, QEasingCurve
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QMainWindow, QApplication, QDesktopWidget
-from OpenGL.GL import *
 import  sys
 
 class MyMainForm(QMainWindow, Ui_MainWindow):
