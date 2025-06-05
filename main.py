@@ -3,7 +3,8 @@ from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtCore import Qt, QPropertyAnimation, QRect, QEasingCurve
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import QMainWindow, QApplication, QDesktopWidget
-import  sys
+import sys
+from wasteClassify import WasteClassifyWindow
 
 class MyMainForm(QMainWindow, Ui_MainWindow):
     def __init__(self, parent=None):
@@ -14,7 +15,18 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         self.anim=None
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
         self.setWindowFlags(Qt.FramelessWindowHint)  # 设置窗口标志：隐藏窗口边框
-        self.lineEdit.setAttribute(QtCore.Qt.WA_MacShowFocusRect, 0)
+
+        # 连接列表项的点击信号
+        self.listWidget.itemClicked.connect(self.on_item_clicked)
+        
+        # 垃圾分类窗口实例
+        self.waste_classify_window = None
+
+    def toggleMaximized(self):
+        if self.isMaximized():
+            self.showNormal()
+        else:
+            self.showMaximized()
 
     def mousePressEvent(self, event):
         if event.button() == QtCore.Qt.LeftButton:
@@ -41,6 +53,16 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         effect_shadow.setBlurRadius(128)  # 阴影半径
         effect_shadow.setColor(QColor(155, 230, 237, 150))  # 阴影颜色
         widget.setGraphicsEffect(effect_shadow)
+    
+    def on_item_clicked(self, item):
+        # 获取点击的项目文本
+        item_text = item.text()
+        
+        # 如果点击的是"功能2"，打开垃圾分类窗口
+        if item_text == "垃圾识别":
+            if not self.waste_classify_window:
+                self.waste_classify_window = WasteClassifyWindow()
+            self.waste_classify_window.show()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

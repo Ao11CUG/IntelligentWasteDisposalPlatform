@@ -134,16 +134,6 @@ class Ui_MainWindow(object):
         self.widget_6.setObjectName("widget_6")
         self.horizontalLayout_6.addWidget(self.widget_6)
         self.verticalLayout_2.addWidget(self.frame_5)
-        self.label = QtWidgets.QLabel(self.frame_2)
-        font = QtGui.QFont()
-        font.setPointSize(16)
-        font.setBold(True)
-        font.setWeight(75)
-        self.label.setFont(font)
-        self.label.setStyleSheet("color: rgb(22, 54, 53)")
-        self.label.setAlignment(QtCore.Qt.AlignCenter)
-        self.label.setObjectName("label")
-        self.verticalLayout_2.addWidget(self.label)
         self.label_2 = QtWidgets.QLabel(self.frame_2)
         font = QtGui.QFont()
         font.setPointSize(13)
@@ -207,38 +197,8 @@ class Ui_MainWindow(object):
         item.setIcon(icon3)
         self.listWidget.addItem(item)
         self.verticalLayout_2.addWidget(self.listWidget)
-        self.frame_6 = QtWidgets.QFrame(self.frame_2)
-        self.frame_6.setStyleSheet("QFrame{\n"
-"    background-color: rgb(89, 217, 212);\n"
-"    border-radius:20px;color: rgb(255, 255, 255);\n"
-"}\n"
-"\n"
-"")
-        self.frame_6.setFrameShape(QtWidgets.QFrame.StyledPanel)
-        self.frame_6.setFrameShadow(QtWidgets.QFrame.Raised)
-        self.frame_6.setObjectName("frame_6")
-        self.horizontalLayout = QtWidgets.QHBoxLayout(self.frame_6)
-        self.horizontalLayout.setObjectName("horizontalLayout")
-        self.verticalLayout = QtWidgets.QVBoxLayout()
-        self.verticalLayout.setSpacing(0)
-        self.verticalLayout.setObjectName("verticalLayout")
-        self.label_4 = QtWidgets.QLabel(self.frame_6)
-        font = QtGui.QFont()
-        font.setPointSize(16)
-        font.setBold(True)
-        font.setWeight(75)
-        self.label_4.setFont(font)
-        self.label_4.setAlignment(QtCore.Qt.AlignCenter)
-        self.label_4.setObjectName("label_4")
-        self.verticalLayout.addWidget(self.label_4)
-        self.horizontalLayout.addLayout(self.verticalLayout)
-        self.widget_2 = QtWidgets.QWidget(self.frame_6)
-        self.widget_2.setStyleSheet("image: url(:/svg/Morikawa/01_Data/img/image/image.png);")
-        self.widget_2.setObjectName("widget_2")
-        self.horizontalLayout.addWidget(self.widget_2)
-        self.verticalLayout_2.addWidget(self.frame_6)
         self.verticalLayout_2.setStretch(0, 1)
-        self.verticalLayout_2.setStretch(3, 3)
+        self.verticalLayout_2.setStretch(2, 3)
         self.horizontalLayout_7.addWidget(self.frame_2)
         self.verticalLayout_6 = QtWidgets.QVBoxLayout()
         self.verticalLayout_6.setSpacing(12)
@@ -254,29 +214,6 @@ class Ui_MainWindow(object):
         self.verticalLayout_3 = QtWidgets.QVBoxLayout(self.frame_3)
         self.verticalLayout_3.setContentsMargins(-1, 24, -1, -1)
         self.verticalLayout_3.setObjectName("verticalLayout_3")
-        self.label_6 = QtWidgets.QLabel(self.frame_3)
-        font = QtGui.QFont()
-        font.setPointSize(18)
-        font.setBold(True)
-        font.setWeight(75)
-        self.label_6.setFont(font)
-        self.label_6.setStyleSheet("color: rgb(22, 54, 53)")
-        self.label_6.setObjectName("label_6")
-        self.verticalLayout_3.addWidget(self.label_6)
-        self.horizontalLayout_2 = QtWidgets.QHBoxLayout()
-        self.horizontalLayout_2.setObjectName("horizontalLayout_2")
-        self.lineEdit = QtWidgets.QLineEdit(self.frame_3)
-        self.lineEdit.setMinimumSize(QtCore.QSize(0, 32))
-        self.lineEdit.setStyleSheet("QLineEdit{\n"
-"    background-color: rgba(245, 244, 246,200);\n"
-"border:0px solid red;\n"
-"border-radius:14px;\n"
-"}")
-        self.lineEdit.setObjectName("lineEdit")
-        self.horizontalLayout_2.addWidget(self.lineEdit)
-        spacerItem = QtWidgets.QSpacerItem(40, 20, QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Minimum)
-        self.horizontalLayout_2.addItem(spacerItem)
-        self.verticalLayout_3.addLayout(self.horizontalLayout_2)
         self.verticalLayout_6.addWidget(self.frame_3)
         self.frame_4 = QtWidgets.QFrame(self.frame)
         self.frame_4.setStyleSheet(".QFrame{\n"
@@ -301,6 +238,34 @@ class Ui_MainWindow(object):
         self.horizontalLayout_7.addLayout(self.verticalLayout_6)
         self.horizontalLayout_7.setStretch(0, 1)
         self.horizontalLayout_7.setStretch(1, 4)
+        self.closeButton = QtWidgets.QPushButton(self.frame)
+        self.closeButton.setGeometry(QtCore.QRect(1750, 20, 30, 30))
+        self.closeButton.setStyleSheet("QPushButton {\n"
+"    border: none;\n"
+"    background-color: rgba(255, 255, 255, 0);\n"
+"    image: url(:/resource/svg_icons/icon_close.svg);\n"
+"}\n"
+"\n"
+"QPushButton:hover {\n"
+"    background-color: rgba(255, 0, 0, 100);\n"
+"    border-radius: 15px;\n"
+"}")
+        self.closeButton.setText("")
+        self.closeButton.setObjectName("closeButton")
+        self.minimizeButton = QtWidgets.QPushButton(self.frame)
+        self.minimizeButton.setGeometry(QtCore.QRect(1710, 20, 30, 30))
+        self.minimizeButton.setStyleSheet("QPushButton {\n"
+"    border: none;\n"
+"    background-color: rgba(255, 255, 255, 0);\n"
+"    image: url(:/resource/svg_icons/icon_minimize.svg);\n"
+"}\n"
+"\n"
+"QPushButton:hover {\n"
+"    background-color: rgba(0, 0, 255, 50);\n"
+"    border-radius: 15px;\n"
+"}")
+        self.minimizeButton.setText("")
+        self.minimizeButton.setObjectName("minimizeButton")
         self.horizontalLayout_8.addWidget(self.frame)
         MainWindow.setCentralWidget(self.centralwidget)
 
@@ -310,7 +275,6 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.label.setText(_translate("MainWindow", "3S应用与开发"))
         self.label_2.setText(_translate("MainWindow", "智能垃圾处理平台"))
         __sortingEnabled = self.listWidget.isSortingEnabled()
         self.listWidget.setSortingEnabled(False)
@@ -319,11 +283,8 @@ class Ui_MainWindow(object):
         item = self.listWidget.item(1)
         item.setText(_translate("MainWindow", "功能1"))
         item = self.listWidget.item(2)
-        item.setText(_translate("MainWindow", "功能2"))
+        item.setText(_translate("MainWindow", "垃圾识别"))
         item = self.listWidget.item(3)
         item.setText(_translate("MainWindow", "功能3"))
         self.listWidget.setSortingEnabled(__sortingEnabled)
-        self.label_4.setText(_translate("MainWindow", "组号"))
-        self.label_6.setText(_translate("MainWindow", "输入框"))
-
-import resource_rc
+import resource

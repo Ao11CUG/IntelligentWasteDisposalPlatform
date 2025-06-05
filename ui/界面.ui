@@ -135,7 +135,7 @@ QScrollBar::add-page:vertical,QScrollBar::sub-page:vertical
          <property name="frameShadow">
           <enum>QFrame::Raised</enum>
          </property>
-         <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,0,0,3,0">
+         <layout class="QVBoxLayout" name="verticalLayout_2" stretch="1,0,3">
           <property name="spacing">
            <number>2</number>
           </property>
@@ -179,26 +179,6 @@ background-color: rgb(223, 223, 223);</string>
               </widget>
              </item>
             </layout>
-           </widget>
-          </item>
-          <item>
-           <widget class="QLabel" name="label">
-            <property name="font">
-             <font>
-              <pointsize>16</pointsize>
-              <weight>75</weight>
-              <bold>true</bold>
-             </font>
-            </property>
-            <property name="styleSheet">
-             <string notr="true">color: rgb(22, 54, 53)</string>
-            </property>
-            <property name="text">
-             <string>3S应用与开发</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignCenter</set>
-            </property>
            </widget>
           </item>
           <item>
@@ -282,7 +262,7 @@ border-left: 2px solid rgb(90, 216, 212)
             </item>
             <item>
              <property name="text">
-              <string>功能2</string>
+              <string>垃圾识别</string>
              </property>
              <property name="icon">
               <iconset>
@@ -298,57 +278,6 @@ border-left: 2px solid rgb(90, 216, 212)
                <normaloff>:/buttom/img/buttom/中指_middle-finger.svg</normaloff>:/buttom/img/buttom/中指_middle-finger.svg</iconset>
              </property>
             </item>
-           </widget>
-          </item>
-          <item>
-           <widget class="QFrame" name="frame_6">
-            <property name="styleSheet">
-             <string notr="true">QFrame{
-	background-color: rgb(89, 217, 212);
-	border-radius:20px;color: rgb(255, 255, 255);
-}
-
-</string>
-            </property>
-            <property name="frameShape">
-             <enum>QFrame::StyledPanel</enum>
-            </property>
-            <property name="frameShadow">
-             <enum>QFrame::Raised</enum>
-            </property>
-            <layout class="QHBoxLayout" name="horizontalLayout">
-             <item>
-              <layout class="QVBoxLayout" name="verticalLayout">
-               <property name="spacing">
-                <number>0</number>
-               </property>
-               <item>
-                <widget class="QLabel" name="label_4">
-                 <property name="font">
-                  <font>
-                   <pointsize>16</pointsize>
-                   <weight>75</weight>
-                   <bold>true</bold>
-                  </font>
-                 </property>
-                 <property name="text">
-                  <string>组号</string>
-                 </property>
-                 <property name="alignment">
-                  <set>Qt::AlignCenter</set>
-                 </property>
-                </widget>
-               </item>
-              </layout>
-             </item>
-             <item>
-              <widget class="QWidget" name="widget_2" native="true">
-               <property name="styleSheet">
-                <string notr="true">image: url(:/svg/Morikawa/01_Data/img/image/image.png);</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
            </widget>
           </item>
          </layout>
@@ -377,57 +306,6 @@ border-left: 2px solid rgb(90, 216, 212)
             <property name="topMargin">
              <number>24</number>
             </property>
-            <item>
-             <widget class="QLabel" name="label_6">
-              <property name="font">
-               <font>
-                <pointsize>18</pointsize>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="styleSheet">
-               <string notr="true">color: rgb(22, 54, 53)</string>
-              </property>
-              <property name="text">
-               <string>输入框</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <layout class="QHBoxLayout" name="horizontalLayout_2">
-              <item>
-               <widget class="QLineEdit" name="lineEdit">
-                <property name="minimumSize">
-                 <size>
-                  <width>0</width>
-                  <height>32</height>
-                 </size>
-                </property>
-                <property name="styleSheet">
-                 <string notr="true">QLineEdit{
-	background-color: rgba(245, 244, 246,200);
-border:0px solid red;
-border-radius:14px;
-}</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <spacer name="horizontalSpacer">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
-             </layout>
-            </item>
            </layout>
           </widget>
          </item>
@@ -463,13 +341,63 @@ border-radius:14px;
         </layout>
        </item>
       </layout>
+      <widget class="QPushButton" name="closeButton">
+       <property name="geometry">
+        <rect>
+         <x>1750</x>
+         <y>20</y>
+         <width>30</width>
+         <height>30</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton {
+	border: none;
+	background-color: rgba(255, 255, 255, 0);
+	image: url(:/resource/svg_icons/icon_close.svg);
+}
+
+QPushButton:hover {
+	background-color: rgba(255, 0, 0, 100);
+	border-radius: 15px;
+}</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="minimizeButton">
+       <property name="geometry">
+        <rect>
+         <x>1710</x>
+         <y>20</y>
+         <width>30</width>
+         <height>30</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">QPushButton {
+	border: none;
+	background-color: rgba(255, 255, 255, 0);
+	image: url(:/resource/svg_icons/icon_minimize.svg);
+}
+
+QPushButton:hover {
+	background-color: rgba(0, 0, 255, 50);
+	border-radius: 15px;
+}</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
      </widget>
     </item>
    </layout>
   </widget>
  </widget>
  <resources>
-  <include location="resource.qrc"/>
+  <include location="../resource.qrc"/>
  </resources>
  <connections/>
 </ui>
