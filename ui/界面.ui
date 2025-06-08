@@ -194,7 +194,7 @@ background-color: rgb(223, 223, 223);</string>
              <string notr="true">color: rgb(102, 128, 127);</string>
             </property>
             <property name="text">
-             <string>智能垃圾处理平台</string>
+             <string>未来城智能垃圾处理平台</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignCenter</set>
