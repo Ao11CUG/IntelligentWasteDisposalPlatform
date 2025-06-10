@@ -192,9 +192,44 @@ class Ui_MainWindow(object):
         icon3.addPixmap(QtGui.QPixmap(":/buttom/img/buttom/中指_middle-finger.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         item.setIcon(icon3)
         self.listWidget.addItem(item)
+        item = QtWidgets.QListWidgetItem()
+        icon4 = QtGui.QIcon()
+        icon4.addPixmap(QtGui.QPixmap(":/buttom/img/buttom/任天堂游戏_switch-nintendo.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        item.setIcon(icon4)
+        self.listWidget.addItem(item)
         self.verticalLayout_2.addWidget(self.listWidget)
+        self.clearButton = QtWidgets.QPushButton(self.frame_2)
+        self.clearButton.setMinimumSize(QtCore.QSize(120, 50))
+        font = QtGui.QFont()
+        font.setPointSize(13)
+        font.setBold(True)
+        font.setWeight(75)
+        self.clearButton.setFont(font)
+        self.clearButton.setStyleSheet("""
+            QPushButton {
+                font-size: 16px;
+                padding: 8px 16px;
+                border-radius: 15px;
+                background-color: rgb(180, 180, 180);
+                color: white;
+                font-weight: bold;
+                border: 2px solid rgb(160, 160, 160);
+                margin: 10px 20px;
+            }
+            QPushButton:hover {
+                background-color: rgb(150, 150, 150);
+                border: 2px solid rgb(130, 130, 130);
+            }
+            QPushButton:pressed {
+                background-color: rgb(130, 130, 130);
+                border: 2px solid rgb(110, 110, 110);
+            }
+        """)
+        self.clearButton.setObjectName("clearButton")
+        self.verticalLayout_2.addWidget(self.clearButton)
         self.verticalLayout_2.setStretch(0, 1)
-        self.verticalLayout_2.setStretch(2, 3)
+        self.verticalLayout_2.setStretch(2, 2)
+        self.verticalLayout_2.setStretch(3, 1)
         self.horizontalLayout_7.addWidget(self.frame_2)
         self.verticalLayout_6 = QtWidgets.QVBoxLayout()
         self.verticalLayout_6.setSpacing(12)
@@ -272,6 +307,7 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.label_2.setText(_translate("MainWindow", "未来城智能垃圾处理平台"))
+        self.clearButton.setText(_translate("MainWindow", "清除"))
         __sortingEnabled = self.listWidget.isSortingEnabled()
         self.listWidget.setSortingEnabled(False)
         item = self.listWidget.item(0)
@@ -280,6 +316,8 @@ class Ui_MainWindow(object):
         item.setText(_translate("MainWindow", "垃圾分类识别"))
         item = self.listWidget.item(2)
         item.setText(_translate("MainWindow", "垃圾桶信息查询"))
+        item = self.listWidget.item(3)
+        item.setText(_translate("MainWindow", "垃圾车最优遍历"))
         self.listWidget.setSortingEnabled(__sortingEnabled)
         self.close_btn = QPushButton(self)
         self.close_btn.setFixedSize(64, 64)
