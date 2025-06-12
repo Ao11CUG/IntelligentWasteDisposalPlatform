@@ -665,45 +665,24 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
             # Cesium静态资源目录（如Cesium-1.128）应与html同级
             cesium_dir = os.path.join(html_dir, "Cesium-1.128")
             def run_flask():
-                try:
-                    flask_app = Flask(__name__, static_folder=html_dir)
-                    @flask_app.route('/')
-                    def index():
-                        return send_from_directory(html_dir, html_file)
-                    # 静态资源路由
-                    @flask_app.route('/Cesium-1.128/<path:filename>')
-                    def cesium_static(filename):
-                        return send_from_directory(cesium_dir, filename)
-                    # 兼容favicon
-                    @flask_app.route('/favicon.ico')
-                    def favicon():
-                        return send_from_directory(html_dir, 'favicon.ico') if os.path.exists(os.path.join(html_dir, 'favicon.ico')) else ('', 204)
-                    print(f"启动Flask服务器，监听地址: 0.0.0.0:{5678}")
-                    flask_app.run(host='0.0.0.0', port=5678, debug=False, use_reloader=False)
-                except Exception as e:
-                    print(f"Flask服务器启动失败: {e}")
-                    # 使用QMessageBox显示错误，但需要在主线程中执行
-                    # 使用QApplication.instance().postEvent或类似机制可以解决，但这里简化处理
-            
+                flask_app = Flask(__name__, static_folder=html_dir)
+                @flask_app.route('/')
+                def index():
+                    return send_from_directory(html_dir, html_file)
+                # 静态资源路由
+                @flask_app.route('/Cesium-1.128/<path:filename>')
+                def cesium_static(filename):
+                    return send_from_directory(cesium_dir, filename)
+                # 兼容favicon
+                @flask_app.route('/favicon.ico')
+                def favicon():
+                    return send_from_directory(html_dir, 'favicon.ico') if os.path.exists(os.path.join(html_dir, 'favicon.ico')) else ('', 204)
+                flask_app.run(port=5678, debug=False, use_reloader=False)
             if os.path.exists(html_path):
-                try:
-                    # 检查是否已有服务器在运行
-                    if hasattr(self, "_flask_thread") and self._flask_thread.is_alive():
-                        print("Flask服务器已在运行中")
-                        # 直接打开浏览器
-                        webbrowser.open('http://127.0.0.1:5678/')
-                    else:
-                        # 创建并启动新线程
-                        self._flask_thread = threading.Thread(target=run_flask, daemon=True)
-                        self._flask_thread.start()
-                        # 等待短暂时间确保服务器有机会启动
-                        import time
-                        time.sleep(0.5)
-                        # 打开浏览器
-                        webbrowser.open('http://127.0.0.1:5678/')
-                        QMessageBox.information(self, "网页端", "已启动网页服务器并打开浏览器。\n如果页面无法加载，请稍后再试。")
-                except Exception as e:
-                    QMessageBox.warning(self, "错误", f"启动网页服务器失败: {e}")
+                if not hasattr(self, "_flask_thread") or not self._flask_thread.is_alive():
+                    self._flask_thread = threading.Thread(target=run_flask, daemon=True)
+                    self._flask_thread.start()
+                webbrowser.open('http://127.0.0.1:5678/')
             else:
                 QMessageBox.warning(self, "提示", f"未找到本地HTML文件: {html_path}")
         # 如果点击的是"垃圾车最优遍历"，启用垃圾车导航功能
