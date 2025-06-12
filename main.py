@@ -22,6 +22,9 @@ import matplotlib.animation as animation
 from numpy import linspace, array
 import os
 import time
+from flask import Flask, send_from_directory
+import threading
+import webbrowser
 
 # 导入自定义模块
 from trash_navigation import TrashSelectionDialog, NavToNearestBin
@@ -55,6 +58,13 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         self.points_gdf = None  # 点数据GeoDataFrame
         self.roads_gdf = None  # 路网数据GeoDataFrame
         self.graph = nx.Graph()  # 路网图结构
+        
+        # 新地图数据
+        self.buildings_gdf = None  # 建筑物数据GeoDataFrame
+        self.greenland_gdf = None  # 绿地数据GeoDataFrame
+        self.ground_gdf = None  # 操场数据GeoDataFrame
+        self.new_road_gdf = None  # 新道路数据GeoDataFrame
+        self.outroad_gdf = None  # 外围道路数据GeoDataFrame
         
         # 路径规划相关
         self.selected_path = None  # 当前选择的路径
@@ -101,13 +111,13 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         self.pedestrian_animation_running = False  # 行人动画是否正在运行
         
         # 图标相关
-        self.icon_scale_factor = 2.5  # 图标缩放系数 - 可以在这里直接调整所有图标大小
+        self.icon_scale_factor = 3.0  # 图标缩放系数 - 从2.5增加到3.0，使图标在更大的地图上显示合适
         self.base_icon_sizes = {
-            '垃圾站': 0.07,
-            '大垃圾桶': 0.04,
-            '小垃圾桶': 0.03,
-            '垃圾车': 0.03,
-            '行人': 0.04
+            '垃圾站': 0.08,  # 从0.07增加到0.08
+            '大垃圾桶': 0.05,  # 从0.04增加到0.05
+            '小垃圾桶': 0.04,  # 从0.03增加到0.04
+            '垃圾车': 0.04,  # 从0.03增加到0.04
+            '行人': 0.05   # 从0.04增加到0.05
         }
         self.bin_icons = {
             '垃圾站': self.load_icon('垃圾站.png'),
@@ -118,7 +128,7 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         }
         
         # 加载SHP数据
-        self.points_gdf, self.roads_gdf = readSHP()
+        self.points_gdf, self.roads_gdf, self.buildings_gdf, self.greenland_gdf, self.ground_gdf, self.new_road_gdf, self.outroad_gdf = readSHP()
         
         # 构建道路网络
         self.build_road_network()
@@ -131,7 +141,85 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         
         # 显示地图
         self.displayMap()
+         # 兼容UI文件中按钮命名，适配btn_close/close_btn/closeButton
+        if hasattr(self, 'close_btn'):
+            close_btn = self.close_btn
+        elif hasattr(self, 'btn_close'):
+            close_btn = self.btn_close
+        elif hasattr(self, 'closeButton'):
+            close_btn = self.closeButton
+        else:
+            close_btn = None
 
+        # 如果有其它按钮（如minimizeButton等），隐藏它们
+        if hasattr(self, 'minimizeButton'):
+            self.minimizeButton.hide()
+        if hasattr(self, 'maximizeButton'):
+            self.maximizeButton.hide()
+        if hasattr(self, 'toggle_btn'):
+            self.toggle_btn.hide()  # 只用main.py的btn_toggle
+
+        # 保证toggle按钮和minimize按钮只创建一次
+        if close_btn:
+            # toggle按钮
+            if not hasattr(self, 'btn_toggle'):
+                self.btn_toggle = QtWidgets.QPushButton(self)
+                self.btn_toggle.setFixedSize(close_btn.width(), close_btn.height())
+                if hasattr(close_btn, 'icon'):
+                    self.btn_toggle.setIcon(close_btn.icon())
+                if hasattr(close_btn, 'iconSize'):
+                    self.btn_toggle.setIconSize(close_btn.iconSize())
+                # 透明度加深
+                self.btn_toggle.setStyleSheet(close_btn.styleSheet().replace("rgba(200, 200, 200, 80)", "rgba(200, 200, 200, 180)"))
+                self.btn_toggle.setToolTip("窗口化/全屏化")
+                self.btn_toggle.clicked.connect(self.toggleMaximized)
+                self.btn_toggle.raise_()
+            # minimize按钮
+            if not hasattr(self, 'btn_minimize'):
+                self.btn_minimize = QtWidgets.QPushButton(self)
+                self.btn_minimize.setFixedSize(close_btn.width(), close_btn.height())
+                if hasattr(close_btn, 'icon'):
+                    self.btn_minimize.setIcon(close_btn.icon())
+                if hasattr(close_btn, 'iconSize'):
+                    self.btn_minimize.setIconSize(close_btn.iconSize())
+                # 透明度加深
+                self.btn_minimize.setStyleSheet(close_btn.styleSheet().replace("rgba(200, 200, 200, 80)", "rgba(200, 200, 200, 180)"))
+                self.btn_minimize.setToolTip("最小化")
+                self.btn_minimize.clicked.connect(self.showMinimized)
+                self.btn_minimize.raise_()
+        # 按钮自适应窗口大小
+        self._update_close_and_toggle_btn_pos()
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._update_close_and_toggle_btn_pos()
+
+    def _update_close_and_toggle_btn_pos(self):
+        # 让关闭按钮、toggle按钮、minimize按钮随窗口缩放自适应
+        if hasattr(self, 'close_btn'):
+            close_btn = self.close_btn
+        elif hasattr(self, 'btn_close'):
+            close_btn = self.btn_close
+        elif hasattr(self, 'closeButton'):
+            close_btn = self.closeButton
+        else:
+            close_btn = None
+        # 关闭按钮自适应
+        if close_btn:
+            btn_size = max(30, int(self.width() * 0.035))
+            close_btn.setFixedSize(btn_size, btn_size)
+            margin_top = 18
+            margin_right = 18
+            # 透明度加深
+            close_btn.setStyleSheet(close_btn.styleSheet().replace("rgba(200, 200, 200, 80)", "rgba(200, 200, 200, 180)"))
+            close_btn.move(self.width() - btn_size - margin_right, margin_top)
+        # toggle按钮自适应
+        if close_btn and hasattr(self, 'btn_toggle'):
+            self.btn_toggle.setFixedSize(close_btn.width(), close_btn.height())
+            self.btn_toggle.move(close_btn.x() - close_btn.width() - 10, close_btn.y())
+        # minimize按钮自适应
+        if close_btn and hasattr(self, 'btn_minimize'):
+            self.btn_minimize.setFixedSize(close_btn.width(), close_btn.height())
+            self.btn_minimize.move(self.btn_toggle.x() - close_btn.width() - 10, close_btn.y())
     def load_icon(self, icon_name):
         """加载图标文件
         
@@ -149,12 +237,13 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
             return None
 
     def setupMapCanvas(self):
-        # 创建Figure对象
-        self.figure = Figure(figsize=(8, 6), dpi=100)
+        # 创建Figure对象 - 进一步增加图形大小
+        self.figure = Figure(figsize=(14, 11), dpi=100)  # 从(12,9)改为(14,11)，进一步增大地图显示区域
         self.canvas = FigureCanvas(self.figure)
-        
+        self.canvas.setStyleSheet("background: transparent")  # Qt层面canvas背景透明
         # 将canvas添加到widget中
         layout = QtWidgets.QVBoxLayout(self.widget)
+        layout.setContentsMargins(0, 0, 0, 0)  # 设置布局边距为0
         layout.addWidget(self.canvas)
         self.widget.setLayout(layout)
         
@@ -224,21 +313,106 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         
         # 创建子图
         ax = self.figure.add_subplot(111)
+        # 设置背景为透明
+        ax.set_facecolor((1, 1, 1, 0))  # 轴背景透明
+        self.figure.patch.set_alpha(0)  # 整个figure背景透明
         
-        # 绘制路网
+        # 绘制新的地图数据
+        # 1. 绘制外围道路 - 使用灰色
+        if hasattr(self, 'outroad_gdf') and self.outroad_gdf is not None:
+            self.outroad_gdf.plot(ax=ax, color='#A9A9A9', linewidth=3, zorder=1)
+        
+        # 2. 绘制道路 - 使用浅灰色
+        if hasattr(self, 'new_road_gdf') and self.new_road_gdf is not None:
+            self.new_road_gdf.plot(ax=ax, color='#D3D3D3', linewidth=2, zorder=2)
+        
+        # 3. 绘制操场 - 使用更深的灰色
+        if hasattr(self, 'ground_gdf') and self.ground_gdf is not None:
+            self.ground_gdf.plot(ax=ax, color='#909090', alpha=0.8, zorder=3)  # 从#B0B0B0改为#909090，更深的灰色
+        
+        # 4. 绘制绿地 - 使用草地的样式（绿色+纹理）
+        if hasattr(self, 'greenland_gdf') and self.greenland_gdf is not None:
+            self.greenland_gdf.plot(ax=ax, color='#8FBC8F', alpha=0.7, zorder=3)
+            # 添加一些随机点模拟草地纹理
+            for _, geom in self.greenland_gdf.geometry.items():
+                if not geom.is_empty:
+                    # 获取多边形的边界框
+                    minx, miny, maxx, maxy = geom.bounds
+                    # 生成随机点
+                    num_points = int(geom.area * 10000)  # 根据面积确定点的数量
+                    num_points = min(num_points, 100)  # 限制最大点数
+                    
+                    for _ in range(num_points):
+                        # 生成边界框内的随机点
+                        p_x = np.random.uniform(minx, maxx)
+                        p_y = np.random.uniform(miny, maxy)
+                        point = Point(p_x, p_y)
+                        
+                        # 检查点是否在多边形内
+                        if point.within(geom):
+                            ax.plot(p_x, p_y, 'o', color='#006400', markersize=0.3, alpha=0.5, zorder=3)
+        
+        # 5. 绘制建筑物 - 根据type字段区分建筑物和水域
+        if hasattr(self, 'buildings_gdf') and self.buildings_gdf is not None:
+            # 创建两个子集：建筑物和水域
+            buildings = self.buildings_gdf[self.buildings_gdf['type'] == 'building']
+            water = self.buildings_gdf[self.buildings_gdf['type'] == 'water']
+            
+            # 绘制建筑物 - 使用深灰色（原来是暗红色）
+            if not buildings.empty:
+                buildings.plot(ax=ax, color='#404040', edgecolor='#505050', linewidth=0.5, alpha=0.9, zorder=4)
+            
+            # 绘制水域 - 使用蓝色和纹理
+            if not water.empty:
+                water.plot(ax=ax, color='#4F94CD', alpha=0.6, zorder=3)
+                # 添加一些线条模拟水纹
+                for _, geom in water.geometry.items():
+                    if not geom.is_empty:
+                        # 获取多边形的边界框
+                        minx, miny, maxx, maxy = geom.bounds
+                        # 计算水平线的数量（基于高度）
+                        height = maxy - miny
+                        num_lines = int(height * 500)
+                        num_lines = min(num_lines, 20)  # 增加最大线条数
+                        
+                        for i in range(num_lines):
+                            # 在多边形内部画水平线，使用正弦波形以模拟波纹
+                            y_base = miny + (i + 0.5) * (height / (num_lines + 1))
+                            
+                            # 创建多段波浪线
+                            wave_points = []
+                            segments = 50  # 波浪线的段数
+                            
+                            for s in range(segments + 1):
+                                x = minx + s * (maxx - minx) / segments
+                                # 使用正弦函数创建波浪效果，幅度很小
+                                wave_height = 0.00002 * np.sin(s * np.pi / 2.5)
+                                y = y_base + wave_height
+                                wave_points.append((x, y))
+                            
+                            wave_line = LineString(wave_points)
+                            clipped_line = wave_line.intersection(geom)
+                            
+                            if not clipped_line.is_empty:
+                                if isinstance(clipped_line, LineString):
+                                    x, y = clipped_line.xy
+                                    ax.plot(x, y, color='#B0E0E6', linewidth=0.5, alpha=0.4, zorder=3)
+                                elif isinstance(clipped_line, MultiLineString):
+                                    for line_part in clipped_line.geoms:
+                                        x, y = line_part.xy
+                                        ax.plot(x, y, color='#B0E0E6', linewidth=0.5, alpha=0.4, zorder=3)
+        
+        # 绘制原始道路数据但设置为不可见（透明度为0），以保持导航和路径规划功能
         if self.roads_gdf is not None:
-            self.roads_gdf.plot(ax=ax, color='gray', linewidth=1)
+            self.roads_gdf.plot(ax=ax, color='black', linewidth=1, alpha=0, zorder=1)
         
-        # 绘制垃圾桶点位（使用图标）
+        # 绘制垃圾桶和垃圾站图标（始终显示）
         if self.points_gdf is not None:
             for idx, bin_point in self.points_gdf.iterrows():
                 # 判断是否需要高亮显示（被选中的垃圾桶）
                 highlight = (self.selecting_bins and idx in self.selected_truck_bins)
-                # 如果是垃圾站td1，使用垃圾站图标
-                bin_name = bin_point.get('Name', '')
-                
                 # 设置合适的zorder（图层顺序），高亮显示的在上层
-                zorder = 5 if highlight else 2
+                zorder = 15 if highlight else 12
                 
                 # 添加图标
                 self.add_bin_icon(ax, bin_point, highlight, zorder)
@@ -252,14 +426,15 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
                                textcoords="offset points",
                                ha='center', va='center',
                                bbox=dict(boxstyle="circle,pad=0.3", fc="white", ec="green", alpha=0.8),
-                               zorder=6)
+                               zorder=16)
         
+        # 下面是功能性元素，始终显示
         # 导航模式：绘制选择的路径（如果有）
         if self.selected_path is not None and self.enable_navigation:
             # 确保路径是有效的LineString
             if hasattr(self.selected_path, 'xy'):
                 x, y = self.selected_path.xy
-                ax.plot(x, y, color='blue', linewidth=3, linestyle='-', zorder=3)
+                ax.plot(x, y, color='blue', linewidth=3, linestyle='-', zorder=10)
         
         # 垃圾车导航模式：绘制多条路径
         if self.truck_routes is not None and self.enable_truck_navigation:
@@ -270,14 +445,14 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
                 for path in route['route_paths']:
                     if hasattr(path, 'xy'):
                         x, y = path.xy
-                        ax.plot(x, y, color='blue', linewidth=3, linestyle='-', zorder=3)
+                        ax.plot(x, y, color='blue', linewidth=3, linestyle='-', zorder=10)
                 
                 # 绘制点
                 for j, point in enumerate(route['route_points']):
                     if j == 0 or j == len(route['route_points']) - 1:
                         # 起点和终点用星星标记，不使用垃圾车图标
                         ax.plot(point.x, point.y, marker='*', markersize=15, 
-                                color='blue', markeredgecolor='black', zorder=4)
+                                color='blue', markeredgecolor='black', zorder=11)
                         
                         # 添加垃圾车编号标签
                         ax.annotate(f"车1", 
@@ -285,11 +460,11 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
                                   xytext=(10, 10),
                                   textcoords="offset points",
                                   bbox=dict(boxstyle="round,pad=0.5", fc="yellow", alpha=0.8),
-                                  zorder=6)
+                                  zorder=12)
                     else:
                         # 中间点用圆形标记
                         ax.plot(point.x, point.y, marker='o', markersize=10, 
-                                color='blue', markeredgecolor='black', zorder=4)
+                                color='blue', markeredgecolor='black', zorder=11)
             else:
                 # 多车模式
                 for i, route in enumerate(self.truck_routes):
@@ -300,14 +475,14 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
                     for path in route['route_paths']:
                         if hasattr(path, 'xy'):
                             x, y = path.xy
-                            ax.plot(x, y, color=color, linewidth=3, linestyle='-', zorder=3)
+                            ax.plot(x, y, color=color, linewidth=3, linestyle='-', zorder=10)
                     
                     # 绘制点
                     for j, point in enumerate(route['route_points']):
                         if j == 0 or j == len(route['route_points']) - 1:
                             # 起点和终点用星星标记，不使用垃圾车图标
                             ax.plot(point.x, point.y, marker='*', markersize=15, 
-                                    color=color, markeredgecolor='black', zorder=4)
+                                    color=color, markeredgecolor='black', zorder=11)
                             
                             # 添加垃圾车编号标签
                             ax.annotate(f"车{route['truck_id']}", 
@@ -315,23 +490,23 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
                                       xytext=(10, 10),
                                       textcoords="offset points",
                                       bbox=dict(boxstyle="round,pad=0.5", fc="yellow", alpha=0.8),
-                                      zorder=6)
+                                      zorder=12)
                         else:
                             # 中间点用圆形标记
                             ax.plot(point.x, point.y, marker='o', markersize=10, 
-                                    color=color, markeredgecolor='black', zorder=4)
+                                    color=color, markeredgecolor='black', zorder=11)
         
         # 单独绘制点击点（如果有）
         if self.click_point is not None:
-            ax.plot(self.click_point.x, self.click_point.y, 'mo', markersize=10, zorder=5)
+            ax.plot(self.click_point.x, self.click_point.y, 'mo', markersize=10, zorder=15)
             
         # 绘制最近道路点（如果有）
         if self.nearest_road_point is not None and self.enable_navigation:
-            ax.plot(self.nearest_road_point.x, self.nearest_road_point.y, 'go', markersize=8, zorder=4)
+            ax.plot(self.nearest_road_point.x, self.nearest_road_point.y, 'go', markersize=8, zorder=14)
         
         # 绘制最近垃圾桶点（如果有）
         if self.nearest_bin_point is not None and self.enable_navigation:
-            ax.plot(self.nearest_bin_point.x, self.nearest_bin_point.y, 'yo', markersize=12, zorder=4)
+            ax.plot(self.nearest_bin_point.x, self.nearest_bin_point.y, 'yo', markersize=12, zorder=14)
         
         # 垃圾桶信息模式：高亮显示选中的垃圾桶
         if self.selected_bin is not None and self.enable_bin_info:
@@ -358,10 +533,10 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
                                  frameon=True,
                                  bboxprops=dict(edgecolor='blue', linewidth=2),
                                  pad=0.0,
-                                 zorder=5)
+                                 zorder=15)
                 ax.add_artist(ab)
             else:
-                ax.plot(bin_geom.x, bin_geom.y, 'bo', markersize=15, zorder=5)
+                ax.plot(bin_geom.x, bin_geom.y, 'bo', markersize=15, zorder=15)
             
             # 添加垃圾桶信息标签
             label = f"{bin_type_str}\n{bin_size}"
@@ -370,7 +545,7 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
                        xytext=(10, 10),
                        textcoords="offset points",
                        bbox=dict(boxstyle="round,pad=0.5", fc="yellow", alpha=0.8),
-                       zorder=6)
+                       zorder=16)
         
         # 如果正在选择垃圾桶模式，添加规划按钮
         if self.selecting_bins:
@@ -379,6 +554,21 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         
         # 隐藏坐标轴
         ax.set_axis_off()
+        
+        # 调整地图视图，确保所有内容都能显示出来
+        # 确定显示范围 - 优先使用新地图数据的范围
+        if hasattr(self, 'new_road_gdf') and self.new_road_gdf is not None and not self.new_road_gdf.empty:
+            bounds = self.new_road_gdf.total_bounds
+            # 扩大边界以确保所有内容都能显示
+            x_margin = (bounds[2] - bounds[0]) * 0.05  # 水平方向增加5%的边距
+            y_margin = (bounds[3] - bounds[1]) * 0.05  # 垂直方向增加5%的边距
+            
+            # 设置地图显示范围
+            ax.set_xlim([bounds[0] - x_margin, bounds[2] + x_margin])
+            ax.set_ylim([bounds[1] - y_margin, bounds[3] + y_margin])
+        
+        # 使用tight_layout，减少空白边距
+        self.figure.tight_layout(pad=0)
         
         # 刷新canvas
         self.canvas.draw()
@@ -467,6 +657,55 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
             msg_box.setIcon(QMessageBox.Information)
             msg_box.exec_()
             print("垃圾桶信息查看功能已启用，请点击地图上的垃圾桶查看信息")
+        # 如果点击的是"网页端"
+        elif item_text == "网页端":
+            html_path = os.path.abspath("web/垃圾桶.html")
+            html_dir = os.path.dirname(html_path)
+            html_file = os.path.basename(html_path)
+            # Cesium静态资源目录（如Cesium-1.128）应与html同级
+            cesium_dir = os.path.join(html_dir, "Cesium-1.128")
+            def run_flask():
+                try:
+                    flask_app = Flask(__name__, static_folder=html_dir)
+                    @flask_app.route('/')
+                    def index():
+                        return send_from_directory(html_dir, html_file)
+                    # 静态资源路由
+                    @flask_app.route('/Cesium-1.128/<path:filename>')
+                    def cesium_static(filename):
+                        return send_from_directory(cesium_dir, filename)
+                    # 兼容favicon
+                    @flask_app.route('/favicon.ico')
+                    def favicon():
+                        return send_from_directory(html_dir, 'favicon.ico') if os.path.exists(os.path.join(html_dir, 'favicon.ico')) else ('', 204)
+                    print(f"启动Flask服务器，监听地址: 0.0.0.0:{5678}")
+                    flask_app.run(host='0.0.0.0', port=5678, debug=False, use_reloader=False)
+                except Exception as e:
+                    print(f"Flask服务器启动失败: {e}")
+                    # 使用QMessageBox显示错误，但需要在主线程中执行
+                    # 使用QApplication.instance().postEvent或类似机制可以解决，但这里简化处理
+            
+            if os.path.exists(html_path):
+                try:
+                    # 检查是否已有服务器在运行
+                    if hasattr(self, "_flask_thread") and self._flask_thread.is_alive():
+                        print("Flask服务器已在运行中")
+                        # 直接打开浏览器
+                        webbrowser.open('http://127.0.0.1:5678/')
+                    else:
+                        # 创建并启动新线程
+                        self._flask_thread = threading.Thread(target=run_flask, daemon=True)
+                        self._flask_thread.start()
+                        # 等待短暂时间确保服务器有机会启动
+                        import time
+                        time.sleep(0.5)
+                        # 打开浏览器
+                        webbrowser.open('http://127.0.0.1:5678/')
+                        QMessageBox.information(self, "网页端", "已启动网页服务器并打开浏览器。\n如果页面无法加载，请稍后再试。")
+                except Exception as e:
+                    QMessageBox.warning(self, "错误", f"启动网页服务器失败: {e}")
+            else:
+                QMessageBox.warning(self, "提示", f"未找到本地HTML文件: {html_path}")
         # 如果点击的是"垃圾车最优遍历"，启用垃圾车导航功能
         elif item_text == "垃圾车最优遍历":
             # 初始化垃圾车导航类
@@ -1007,6 +1246,8 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
                         end_node = coords[i + 1]
                         distance = Point(start_node).distance(Point(end_node))
                         self.road_network.add_edge(start_node, end_node, weight=distance)
+        
+        print("道路网络构建完成，节点数:", len(self.road_network.nodes), "边数:", len(self.road_network.edges))
     
     def on_map_click(self, event):
         """处理地图点击事件"""
@@ -1407,7 +1648,33 @@ def readSHP():
     print("R.shp 前3行数据:")
     print(roads_gdf.head(3))
     
-    return points_gdf, roads_gdf
+    # 加载新的地图数据
+    # 建筑物
+    building_file_path = './data/map/ex_building.shp'
+    buildings_gdf = gpd.read_file(building_file_path)
+    print("ex_building.shp 字段列表:", buildings_gdf.columns.tolist())
+    
+    # 绿地
+    greenland_file_path = './data/map/ex_greenland.shp'
+    greenland_gdf = gpd.read_file(greenland_file_path)
+    print("ex_greenland.shp 字段列表:", greenland_gdf.columns.tolist())
+    
+    # 操场
+    ground_file_path = './data/map/ex_ground.shp'
+    ground_gdf = gpd.read_file(ground_file_path)
+    print("ex_ground.shp 字段列表:", ground_gdf.columns.tolist())
+    
+    # 道路
+    new_road_file_path = './data/map/ex_road.shp'
+    new_road_gdf = gpd.read_file(new_road_file_path)
+    print("ex_road.shp 字段列表:", new_road_gdf.columns.tolist())
+    
+    # 外围道路
+    outroad_file_path = './data/map/outroad1.shp'
+    outroad_gdf = gpd.read_file(outroad_file_path)
+    print("outroad1.shp 字段列表:", outroad_gdf.columns.tolist())
+    
+    return points_gdf, roads_gdf, buildings_gdf, greenland_gdf, ground_gdf, new_road_gdf, outroad_gdf
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

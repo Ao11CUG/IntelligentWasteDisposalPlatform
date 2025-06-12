@@ -192,11 +192,19 @@ class Ui_MainWindow(object):
         icon3.addPixmap(QtGui.QPixmap(":/buttom/img/buttom/中指_middle-finger.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         item.setIcon(icon3)
         self.listWidget.addItem(item)
+
         item = QtWidgets.QListWidgetItem()
         icon4 = QtGui.QIcon()
         icon4.addPixmap(QtGui.QPixmap(":/buttom/img/buttom/任天堂游戏_switch-nintendo.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         item.setIcon(icon4)
         self.listWidget.addItem(item)
+        
+        item = QtWidgets.QListWidgetItem()
+        icon5 = QtGui.QIcon()
+        icon5.addPixmap(QtGui.QPixmap(":/buttom/img/buttom/浏览器_browser.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        item.setIcon(icon5)
+        self.listWidget.addItem(item)
+
         self.verticalLayout_2.addWidget(self.listWidget)
         self.clearButton = QtWidgets.QPushButton(self.frame_2)
         self.clearButton.setMinimumSize(QtCore.QSize(120, 50))
@@ -318,15 +326,18 @@ class Ui_MainWindow(object):
         item.setText(_translate("MainWindow", "垃圾桶信息查询"))
         item = self.listWidget.item(3)
         item.setText(_translate("MainWindow", "垃圾车最优遍历"))
+        item = self.listWidget.item(4)
+        item.setText(_translate("MainWindow", "网页端"))
         self.listWidget.setSortingEnabled(__sortingEnabled)
-        self.close_btn = QPushButton(self)
+        # 关闭按钮
+        self.close_btn = QPushButton(MainWindow)
         self.close_btn.setFixedSize(64, 64)
         self.close_btn.setStyleSheet("""
             QPushButton {
                 border-radius: 16px;
-                background: rgba(200, 200, 200, 80);
+                background: rgba(200, 200, 200, 180);
                 border: none;
-                background-image: url(:/ICON/resource/svg_icons/icon_busy.svg);
+                background-image: url(:/ICON/resource/svg_icons/icon_close.svg);
                 background-repeat: no-repeat;
                 background-position: center;
             }
@@ -335,13 +346,63 @@ class Ui_MainWindow(object):
             }
         """)
         self.close_btn.setToolTip("关闭")
-        self.close_btn.clicked.connect(self.close)
+        self.close_btn.clicked.connect(MainWindow.close)
         self.close_btn.raise_()
-        self._update_close_btn_pos()
 
-    def _update_close_btn_pos(self):
+        # toggle按钮
+        self.toggle_btn = QPushButton(MainWindow)
+        self.toggle_btn.setFixedSize(64, 64)
+        self.toggle_btn.setStyleSheet("""
+            QPushButton {
+                border-radius: 16px;
+                background: rgba(200, 200, 200, 180);
+                border: none;
+                background-image: url(:/icon/toggle.svg);
+                background-repeat: no-repeat;
+                background-position: center;
+            }
+            QPushButton:hover {
+                background: rgba(0, 255, 0, 120);
+            }
+        """)
+        self.toggle_btn.setToolTip("窗口化/全屏化")
+        self.toggle_btn.clicked.connect(lambda: MainWindow.showNormal() if MainWindow.isMaximized() else MainWindow.showMaximized())
+        self.toggle_btn.raise_()
+
+        # minimize按钮
+        self.minimize_btn = QPushButton(MainWindow)
+        self.minimize_btn.setFixedSize(64, 64)
+        self.minimize_btn.setStyleSheet("""
+            QPushButton {
+                border-radius: 16px;
+                background: rgba(200, 200, 200, 180);
+                border: none;
+                background-image: url(:/ICON/resource/svg_icons/icon_minimize.svg);
+                background-repeat: no-repeat;
+                background-position: center;
+            }
+            QPushButton:hover {
+                background: rgba(0, 0, 255, 120);
+            }
+        """)
+        self.minimize_btn.setToolTip("最小化")
+        self.minimize_btn.clicked.connect(MainWindow.showMinimized)
+        self.minimize_btn.raise_()
+
+        self._update_top_btns_pos()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._update_top_btns_pos()
+
+    def _update_top_btns_pos(self):
         margin_top = 18
         margin_right = 18
         btn_size = self.close_btn.width()
-        self.close_btn.move(self.width() - btn_size - margin_right, margin_top)
+        # 关闭按钮最右
+        self.close_btn.move(self.centralwidget.width() - btn_size - margin_right, margin_top)
+        # toggle按钮在左侧
+        self.toggle_btn.move(self.centralwidget.width() - btn_size * 2 - margin_right - 10, margin_top)
+        # minimize按钮再左侧
+        self.minimize_btn.move(self.centralwidget.width() - btn_size * 3 - margin_right - 20, margin_top)
 import resource
