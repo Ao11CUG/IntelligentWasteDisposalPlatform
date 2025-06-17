@@ -5,7 +5,7 @@ import base64
 import threading
 from zhipuai import ZhipuAI
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QPushButton, QLabel, QFileDialog, QMessageBox, QHBoxLayout, QMainWindow, QApplication
-from PyQt5.QtGui import QPixmap, QFont
+from PyQt5.QtGui import QPixmap, QFont, QIcon
 from PyQt5.QtCore import Qt, pyqtSignal, QObject
 import os
 
@@ -36,6 +36,7 @@ class WasteClassifyWindow(QMainWindow):
         # 设置窗口标题和大小
         self.setWindowTitle('垃圾分类识别')
         self.resize(850, 750)
+        self.setWindowIcon(QIcon('./data/icon.png'))
         
         # 设置窗口样式
         self.setStyleSheet("""

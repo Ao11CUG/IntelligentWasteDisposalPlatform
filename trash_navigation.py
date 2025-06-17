@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QDialogButtonBox, QWidget, QPushButton
 from PyQt5.QtCore import Qt, QRect
-from PyQt5.QtGui import QFont, QColor
+from PyQt5.QtGui import QFont, QColor, QIcon
 import networkx as nx
 from shapely.geometry import Point, LineString
 from shapely.ops import nearest_points
@@ -19,6 +19,7 @@ class TrashSelectionDialog(QDialog):
         # 设置窗口标题和大小
         self.setWindowTitle('丢垃圾指路')
         self.resize(550, 350)
+        self.setWindowIcon(QIcon('./data/icon.png'))
         
         # 设置窗口样式
         self.setStyleSheet("""

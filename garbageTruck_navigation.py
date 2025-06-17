@@ -20,7 +20,7 @@ class TruckCountDialog(QDialog):
     def initUI(self):
         # 设置窗口标题和大小
         self.setWindowTitle('垃圾车最优遍历')
-        self.resize(400, 250)
+        self.resize(550, 350)
         
         # 设置窗口样式
         self.setStyleSheet("""
@@ -29,13 +29,13 @@ class TruckCountDialog(QDialog):
                 border-radius: 20px;
             }
             QLabel {
-                font-size: 16px;
+                font-size: 24px;
                 font-weight: bold;
                 color: rgb(80, 100, 100);
                 padding: 5px;
             }
             QPushButton {
-                font-size: 16px;
+                font-size: 18px;
                 padding: 10px 20px;
                 border-radius: 15px;
                 background-color: rgb(60, 180, 180);
@@ -52,7 +52,7 @@ class TruckCountDialog(QDialog):
                 border: 2px solid rgb(30, 140, 140);
             }
             QSpinBox {
-                font-size: 14px;
+                font-size: 18px;
                 padding: 5px;
                 border: 1px solid rgb(200, 200, 200);
                 border-radius: 5px;
@@ -67,7 +67,7 @@ class TruckCountDialog(QDialog):
         # 创建标题标签
         title_label = QLabel('垃圾车最优遍历设置')
         title_label.setAlignment(Qt.AlignCenter)
-        title_label.setStyleSheet('font-size: 24px; font-weight: bold; margin-bottom: 15px; color: rgb(60, 90, 90);')
+        title_label.setStyleSheet('font-size: 36px; font-weight: bold; margin-bottom: 15px; color: rgb(60, 90, 90);')
         main_layout.addWidget(title_label)
         
         # 创建垃圾车数量选择区域
@@ -86,7 +86,7 @@ class TruckCountDialog(QDialog):
         # 添加说明标签
         tip_label = QLabel('请点击确定后，在地图上点击选择需要回收的垃圾桶。\n完成选择后，点击"开始规划"按钮进行路径规划。')
         tip_label.setAlignment(Qt.AlignCenter)
-        tip_label.setStyleSheet('font-size: 14px; color: rgb(100, 120, 120); margin-top: 20px;')
+        tip_label.setStyleSheet('font-size: 18px; color: rgb(100, 120, 120); margin-top: 20px;')
         tip_label.setWordWrap(True)
         main_layout.addWidget(tip_label)
         
