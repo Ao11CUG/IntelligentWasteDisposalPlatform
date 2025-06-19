@@ -48,7 +48,7 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         self.anim = None
         self.setAttribute(QtCore.Qt.WA_TranslucentBackground)
         self.setWindowFlags(Qt.FramelessWindowHint)  # 设置窗口标志：隐藏窗口边框
-        
+
         self.setWindowIcon(QIcon('./data/icon.png'))
 
         # 连接列表项的点击信号
@@ -115,7 +115,7 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         self.pedestrian_animation = None  # 行人动画对象
         self.pedestrian_artist = None  # 行人图像对象
         self.pedestrian_animation_running = False  # 行人动画是否正在运行
-        
+
         # 人流量动画控制
         self.enable_pedestrian_flow = True  # 是否启用人流量动画
 
@@ -218,11 +218,19 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
                 self.btn_minimize.raise_()
         # 按钮自适应窗口大小
         self._update_close_and_toggle_btn_pos()
+        # 添加界面淡入动画
+        self._fade_anim = QtCore.QPropertyAnimation(self, b"windowOpacity")
+        self._fade_anim.setDuration(400)
+        self._fade_anim.setStartValue(0.0)
+        self._fade_anim.setEndValue(1.0)
+        self._fade_anim.setEasingCurve(QEasingCurve.InOutQuad)
+        self.setWindowOpacity(0.0)
+        self._fade_anim.start()
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
         self._update_close_and_toggle_btn_pos()
-        
+
         # 添加重绘地图的逻辑，使用防抖机制
         if hasattr(self, '_resize_timer'):
             self._resize_timer.stop()
@@ -230,7 +238,7 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
             self._resize_timer = QtCore.QTimer()
             self._resize_timer.setSingleShot(True)
             self._resize_timer.timeout.connect(self.displayMap)
-        
+
         # 设置300ms的防抖延迟
         self._resize_timer.start(300)
 
@@ -244,14 +252,14 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
             close_btn = self.closeButton
         else:
             close_btn = None
-        
+
         # 关闭按钮自适应
         if close_btn:
             btn_size = max(30, int(self.width() * 0.035))
             close_btn.setFixedSize(btn_size, btn_size)
             margin_top = 18
             margin_right = 18
-            
+
             # 如果close_btn没有文本，设置为"✕"
             if not close_btn.text():
                 close_btn.setText("✕")
@@ -270,14 +278,14 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
                         color: white;
                     }
                 """)
-            
+
             close_btn.move(self.width() - btn_size - margin_right, margin_top)
-        
+
         # toggle按钮自适应
         if close_btn and hasattr(self, 'btn_toggle'):
             self.btn_toggle.setFixedSize(close_btn.width(), close_btn.height())
             self.btn_toggle.move(close_btn.x() - close_btn.width() - 10, close_btn.y())
-        
+
         # minimize按钮自适应
         if close_btn and hasattr(self, 'btn_minimize'):
             self.btn_minimize.setFixedSize(close_btn.width(), close_btn.height())
@@ -369,6 +377,22 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         # 添加到图中
         ax.add_artist(ab)
         return ab
+
+    def closeEvent(self, event):
+        """处理窗口关闭事件"""
+        # 停止所有动画
+        if self.animation_running:
+            self.stop_animations()
+        # 添加界面淡出动画
+        fade = QtCore.QPropertyAnimation(self, b"windowOpacity")
+        fade.setDuration(400)
+        fade.setStartValue(self.windowOpacity())
+        fade.setEndValue(0.0)
+        fade.setEasingCurve(QEasingCurve.InOutQuad)
+        fade.finished.connect(self._final_close)
+        fade.start()
+        self._fade_anim = fade
+        event.ignore()
 
     def displayMap(self):
         # 清除之前的图形
@@ -715,7 +739,7 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
 
             # 启用垃圾桶信息查看功能
             self.enable_bin_info = True
-            
+
             # 禁用人流量动画
             self.enable_pedestrian_flow = False
 
@@ -772,6 +796,24 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
                         }
                     except Exception as e:
                         return {"result": "读取失败", "image": ""}
+
+                # web目录下所有静态资源（如js/css/image等）
+                @flask_app.route('/web/<path:filename>')
+                def web_static(filename):
+                    return send_from_directory(html_dir, filename)
+
+                # web下js、image、css等静态资源支持
+                @flask_app.route('/js/<path:filename>')
+                def js_static(filename):
+                    return send_from_directory(os.path.join(html_dir, 'js'), filename)
+
+                @flask_app.route('/image/<path:filename>')
+                def image_static(filename):
+                    return send_from_directory(os.path.join(html_dir, 'image'), filename)
+
+                @flask_app.route('/data/<path:filename>')
+                def css_static(filename):
+                    return send_from_directory(os.path.join(html_dir, 'data'), filename)
 
                 flask_app.run(port=5678, debug=False, use_reloader=False)
 
@@ -1502,7 +1544,7 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         # 停止行人动画
         if self.pedestrian_animation_running:
             self.stop_pedestrian_animation()
-            
+
         # 停止人流量动画
         self.stop_pedestrian_flow_animation()
 
@@ -1520,7 +1562,7 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         self.enable_navigation = False
         self.enable_bin_info = False
         self.enable_truck_navigation = False
-        
+
         # 重新启用人流量动画
         self.enable_pedestrian_flow = True
 
@@ -1728,16 +1770,16 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
         # 检查必要的对象是否存在
         if not hasattr(self, "roads_gdf") or self.roads_gdf is None:
             return
-            
+
         # 检查figure和axes是否有效
         if not hasattr(self, "figure") or self.figure is None:
             print("警告: figure对象不存在，无法创建人流量动画")
             return
-            
+
         if not hasattr(self.figure, "axes") or len(self.figure.axes) == 0:
             print("警告: axes对象不存在，无法创建人流量动画")
             return
-            
+
         if ax is None:
             print("警告: 传入的ax对象为None，无法创建人流量动画")
             return
@@ -1796,7 +1838,7 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
             for ped in self._road_pedestrian_cache:
                 point = ped["geom"].interpolate(ped["pos"], normalized=True)
                 artist, = ax.plot([point.x], [point.y], 'o', color=ped["color"], markersize=ped["size"], alpha=1.0,
-                                zorder=20)
+                                  zorder=20)
                 self.road_pedestrian_artists.append(artist)
                 self.road_pedestrian_data.append(ped)
         except Exception as e:
@@ -1815,18 +1857,18 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
                 # 使用self._road_connections和self._road_geoms，避免闭包变量问题
                 road_connections = getattr(self, "_road_connections", {})
                 road_geoms = getattr(self, "_road_geoms", [])
-                
+
                 # 检查必要的数据是否存在
                 if not hasattr(self, "road_pedestrian_data") or not self.road_pedestrian_data:
                     return []
-                    
+
                 if not hasattr(self, "road_pedestrian_artists") or not self.road_pedestrian_artists:
                     return []
-                
+
                 for i, ped in enumerate(self.road_pedestrian_data):
                     if i >= len(self.road_pedestrian_artists):
                         continue  # 防止索引越界
-                        
+
                     ped["pos"] += ped["direction"] * ped["speed"]
                     # 到达道路端点时，尝试切换到相连道路
                     if ped["pos"] > 1 or ped["pos"] < 0:
@@ -1861,7 +1903,7 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
                             else:
                                 ped["pos"] = 0
                                 ped["direction"] = 1
-                    
+
                     # 安全地更新点位置
                     try:
                         point = ped["geom"].interpolate(ped["pos"], normalized=True)
@@ -1869,7 +1911,7 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
                     except Exception as e:
                         print(f"更新人流量点位置时出错: {e}")
                         continue
-                
+
                 return self.road_pedestrian_artists
             except Exception as e:
                 print(f"人流量动画更新函数出错: {e}")
@@ -1892,7 +1934,7 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
                 blit=True,
                 repeat=True
             )
-            
+
             # 刷新画布
             if hasattr(self, "canvas") and self.canvas:
                 self.canvas.draw()
@@ -1911,7 +1953,7 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
                     print(f"停止人流量动画时出错: {e}")
                 finally:
                     self.road_pedestrian_anim = None
-            
+
             # 清除艺术家对象
             if hasattr(self, "road_pedestrian_artists") and self.road_pedestrian_artists:
                 for artist in self.road_pedestrian_artists:
@@ -1921,15 +1963,15 @@ class MyMainForm(QMainWindow, Ui_MainWindow):
                     except Exception as e:
                         print(f"移除人流量点时出错: {e}")
                 self.road_pedestrian_artists = []
-            
+
             # 清除数据
             if hasattr(self, "road_pedestrian_data"):
                 self.road_pedestrian_data = []
-            
+
             # 隐藏按钮
             if hasattr(self, "_stop_pedestrian_flow_btn") and self._stop_pedestrian_flow_btn:
                 self._stop_pedestrian_flow_btn.hide()
-            
+
             # 刷新canvas
             if hasattr(self, "canvas") and self.canvas:
                 self.canvas.draw()
